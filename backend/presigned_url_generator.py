@@ -8,7 +8,7 @@ import os
 import json
 import boto3
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -19,7 +19,7 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME', '')
 PRESIGNED_URL_EXPIRATION = 3600  # 1 hour
 
 
-def lambda_handler(event, context) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Generate presigned URLs."""
     logger.info(f'Received event: {json.dumps(event)}')
     

@@ -70,12 +70,12 @@ def generate_thumbnail(input_path: str, output_path: str) -> str:
     return output_path
 
 
-def update_dynamodb_status(job_id: str, status: str, output_keys: Dict[str, str] = None,
-                          error_message: str = None) -> None:
+def update_dynamodb_status(job_id: str, status: str, output_keys: Dict[str, str] | None = None,
+                          error_message: str | None = None) -> None:
     """Update job record in DynamoDB."""
     table = dynamodb.Table(TABLE_NAME)
     
-    item = {
+    item: Dict[str, Any] = {
         'jobId': job_id,
         'status': status,
         'updatedAt': datetime.utcnow().isoformat(),
