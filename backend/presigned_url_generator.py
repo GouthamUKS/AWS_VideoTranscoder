@@ -4,6 +4,7 @@ Generates presigned PUT URLs for frontend uploads.
 Generates presigned GET URLs for output files.
 """
 
+import os
 import json
 import boto3
 import logging
