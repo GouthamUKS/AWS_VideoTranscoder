@@ -1,22 +1,25 @@
 import os
 import boto3
-from aws_cdk import core as cdk
+from aws_cdk import (
+    Stack, Duration, RemovalPolicy, CfnOutput
+)
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3_deployment as s3deploy
+from constructs import Construct
 
 
-class VideoTranscoderStack(cdk.Stack):
+class VideoTranscoderStack(Stack):
     """CDK Stack for serverless video transcoder."""
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        account = cdk.Stack.of(self).account
-        region = cdk.Stack.of(self).region
+        account = Stack.of(self).account
+        region = Stack.of(self).region
 
         # S3 Bucket for inputs and outputs
         bucket = s3.Bucket(
@@ -29,7 +32,7 @@ class VideoTranscoderStack(cdk.Stack):
                     transitions=[
                         s3.Transition(
                             storage_class=s3.StorageClass.GLACIER,
-                            transition_after=cdk.Duration.days(30),
+                            transition_after=Duration.days(30),
                         )
                     ]
                 )
@@ -39,7 +42,7 @@ class VideoTranscoderStack(cdk.Stack):
                     allowed_headers=["*"],
                     allowed_methods=[s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
                     allowed_origins=["*"],
-                    max_age=cdk.Duration.hours(1),
+                    max_age=3600,
                 )
             ],
         )
@@ -65,7 +68,7 @@ class VideoTranscoderStack(cdk.Stack):
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="video_processor.lambda_handler",
             code=lambda_.Code.from_asset("backend"),
-            timeout=cdk.Duration.seconds(300),
+            timeout=Duration.seconds(300),
             memory_size=1024,
             environment={
                 "DYNAMODB_TABLE": jobs_table.table_name,
@@ -81,7 +84,7 @@ class VideoTranscoderStack(cdk.Stack):
         from aws_cdk import aws_s3_notifications as s3_notify
         bucket.add_event_notification(
             s3.EventType.OBJECT_CREATED,
-            s3_notify.LambdaDestination(video_processor),
+            s3_notify.LambdaDestination(video_processor),  # type: ignore
             s3.NotificationKeyFilter(prefix="uploads/"),
         )
 
@@ -114,7 +117,7 @@ class VideoTranscoderStack(cdk.Stack):
         upload_resource = api.root.add_resource("upload")
         upload_resource.add_method(
             "POST",
-            apigateway.LambdaIntegration(presigned_gen),
+            apigateway.LambdaIntegration(presigned_gen),  # type: ignore
         )
 
         # GET /status/{jobId} endpoint
@@ -122,7 +125,7 @@ class VideoTranscoderStack(cdk.Stack):
         job_resource = status_resource.add_resource("{jobId}")
         job_resource.add_method(
             "GET",
-            apigateway.LambdaIntegration(presigned_gen),
+            apigateway.LambdaIntegration(presigned_gen),  # type: ignore
         )
 
         # GET /outputs/{jobId} endpoint
@@ -130,10 +133,10 @@ class VideoTranscoderStack(cdk.Stack):
         output_job_resource = outputs_resource.add_resource("{jobId}")
         output_job_resource.add_method(
             "GET",
-            apigateway.LambdaIntegration(presigned_gen),
+            apigateway.LambdaIntegration(presigned_gen),  # type: ignore
         )
 
         # Outputs
-        cdk.CfnOutput(self, "BucketName", value=bucket.bucket_name)
-        cdk.CfnOutput(self, "ApiUrl", value=api.url)
-        cdk.CfnOutput(self, "DynamoDBTable", value=jobs_table.table_name)
+        CfnOutput(self, "BucketName", value=bucket.bucket_name)
+        CfnOutput(self, "ApiUrl", value=api.url)
+        CfnOutput(self, "DynamoDBTable", value=jobs_table.table_name)

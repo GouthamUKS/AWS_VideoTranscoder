@@ -73,7 +73,7 @@ def generate_thumbnail(input_path: str, output_path: str) -> str:
 def update_dynamodb_status(job_id: str, status: str, output_keys: Dict[str, str] | None = None,
                           error_message: str | None = None) -> None:
     """Update job record in DynamoDB."""
-    table = dynamodb.Table(TABLE_NAME)
+    table = dynamodb.Table(TABLE_NAME)  # type: ignore
     
     item: Dict[str, Any] = {
         'jobId': job_id,
