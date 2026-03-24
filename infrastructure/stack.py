@@ -67,7 +67,7 @@ class VideoTranscoderStack(Stack):
             self, "VideoProcessor",
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="video_processor.lambda_handler",
-            code=lambda_.Code.from_asset("backend"),
+            code=lambda_.Code.from_asset("../backend"),
             timeout=Duration.seconds(300),
             memory_size=1024,
             environment={
@@ -93,7 +93,7 @@ class VideoTranscoderStack(Stack):
             self, "PresignedURLGenerator",
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="presigned_url_generator.lambda_handler",
-            code=lambda_.Code.from_asset("backend"),
+            code=lambda_.Code.from_asset("../backend"),
             environment={
                 "BUCKET_NAME": bucket.bucket_name,
             },
